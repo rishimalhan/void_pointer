@@ -1,0 +1,24 @@
+version: '3.8'
+
+services:
+  void_pointer-service:
+    build:
+      context: ../
+      dockerfile: docker/Dockerfile
+    tty: true
+    stdin_open: true
+    image: void_pointer
+    container_name: void_pointer
+    volumes:
+      - ../:/app
+    ports:
+      - "8888:8888"
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [ gpu ]
