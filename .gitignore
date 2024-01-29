@@ -1,0 +1,9 @@
+devel/
+logs/
+build/
+checkpoints/
+.pt
+.csv
+.png
+.jpeg
+.pdf
