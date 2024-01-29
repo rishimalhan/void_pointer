@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<package>
+  <name>speech_to_text</name>
+  <version>0.1.0</version>
+  <description>Speech to text module</description>
+  <url type="website">NIL</url>
+
+  <maintainer email="rmalhan0112@gmail.com">Void Pointer LLC</maintainer>
+  <license>Proprietary</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+  <build_depend>rospy</build_depend>
+  <run_depend>rospy</run_depend>
+
+</package>
