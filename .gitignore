@@ -1,0 +1,12 @@
+devel/
+logs/
+build/
+checkpoints/
+.pt
+.csv
+.png
+.jpeg
+.pdf
+.DS_Store
+.pyc
+.pth
