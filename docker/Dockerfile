@@ -63,8 +63,6 @@ RUN apt-get update && xargs -a packages-apt.txt apt-get install -y
 RUN apt-get update && apt-get install python3 -y
 RUN echo "alias python=python3" >> /root/.bashrc
 RUN apt-get update && apt-get install -y python3-pip
-RUN pip3 install torch torchvision torchaudio
-RUN pip install --no-cache-dir -r packages-python3.txt
 
 # CUDA compiler
 # RUN wget https://developer.download.nvidia.com/compute/cuda/12.1.1/local_installers/cuda_12.1.1_530.30.02_linux.run
@@ -82,8 +80,13 @@ RUN sed -i -e '/experimental/ s/^#//g' /etc/apt/sources.list.d/nvidia-container-
 RUN sudo apt-get update
 RUN sudo apt-get install -y nvidia-container-toolkit
 
+RUN pip3 install torch torchvision torchaudio
+RUN pip install --no-cache-dir -r packages-python3.txt
+
 # Copy the rest of the application code into the container
 COPY . .
+
+
 RUN pip install --upgrade openai alive-progress scikit-learn tqdm openai-whisper ffmpeg-python setuptools-rust
 ENV export OPENAI_API_KEY="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"
 RUN echo "alias python=python3" >> /root/.bashrc
