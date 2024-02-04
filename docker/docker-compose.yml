@@ -9,6 +9,9 @@ services:
     stdin_open: true
     image: void_pointer
     container_name: void_pointer
+    logging:
+      options:
+        max-size: "10m"
     volumes:
       - ../:/app
     ports:

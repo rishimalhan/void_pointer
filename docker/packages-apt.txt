@@ -3,3 +3,4 @@ ffmpeg
 ros-noetic-catkin
 python3-catkin-tools
 wget
+curl
