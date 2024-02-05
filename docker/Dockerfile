@@ -63,25 +63,18 @@ RUN apt-get update && xargs -a packages-apt.txt apt-get install -y
 RUN apt-get update && apt-get install python3 -y
 RUN echo "alias python=python3" >> /root/.bashrc
 RUN apt-get update && apt-get install -y python3-pip
-
-# CUDA compiler
-# RUN wget https://developer.download.nvidia.com/compute/cuda/12.1.1/local_installers/cuda_12.1.1_530.30.02_linux.run
-# RUN chmod +x cuda_12.1.1_530.30.02_linux.run
-# RUN ./cuda_12.1.1_530.30.02_linux.run
-# RUN add-apt-repository ppa:graphics-drivers/ppa
-# RUN apt update
-# RUN apt install nvidia-cuda-toolkit
-
-RUN curl -fsSL https://nvidia.github.io/libnvidia-container/gpgkey | sudo gpg --dearmor -o /usr/share/keyrings/nvidia-container-toolkit-keyring.gpg \
-    && curl -s -L https://nvidia.github.io/libnvidia-container/stable/deb/nvidia-container-toolkit.list | \
-    sed 's#deb https://#deb [signed-by=/usr/share/keyrings/nvidia-container-toolkit-keyring.gpg] https://#g' | \
-    sudo tee /etc/apt/sources.list.d/nvidia-container-toolkit.list
-RUN sed -i -e '/experimental/ s/^#//g' /etc/apt/sources.list.d/nvidia-container-toolkit.list
-RUN sudo apt-get update
-RUN sudo apt-get install -y nvidia-container-toolkit
-
 RUN pip3 install torch torchvision torchaudio
 RUN pip install --no-cache-dir -r packages-python3.txt
+
+# CUDA compiler
+RUN apt clean
+RUN wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2004/x86_64/cuda-ubuntu2004.pin
+RUN mv cuda-ubuntu2004.pin /etc/apt/preferences.d/cuda-repository-pin-600
+RUN wget https://developer.download.nvidia.com/compute/cuda/12.1.0/local_installers/cuda-repo-ubuntu2004-12-1-local_12.1.0-530.30.02-1_amd64.deb
+RUN dpkg -i cuda-repo-ubuntu2004-12-1-local_12.1.0-530.30.02-1_amd64.deb
+RUN cp /var/cuda-repo-ubuntu2004-12-1-local/cuda-*-keyring.gpg /usr/share/keyrings/
+RUN apt-get update
+RUN apt-get -y install cuda
 
 # Copy the rest of the application code into the container
 COPY . .
