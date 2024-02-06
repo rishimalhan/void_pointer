@@ -63,8 +63,6 @@ RUN apt-get update && xargs -a packages-apt.txt apt-get install -y
 RUN apt-get update && apt-get install python3 -y
 RUN echo "alias python=python3" >> /root/.bashrc
 RUN apt-get update && apt-get install -y python3-pip
-RUN pip3 install torch torchvision torchaudio
-RUN pip install --no-cache-dir -r packages-python3.txt
 
 # CUDA compiler
 RUN apt clean
@@ -75,6 +73,9 @@ RUN dpkg -i cuda-repo-ubuntu2004-12-1-local_12.1.0-530.30.02-1_amd64.deb
 RUN cp /var/cuda-repo-ubuntu2004-12-1-local/cuda-*-keyring.gpg /usr/share/keyrings/
 RUN apt-get update
 RUN apt-get -y install cuda
+
+RUN pip3 install torch torchvision torchaudio
+RUN pip install --no-cache-dir -r packages-python3.txt
 
 # Copy the rest of the application code into the container
 COPY . .
