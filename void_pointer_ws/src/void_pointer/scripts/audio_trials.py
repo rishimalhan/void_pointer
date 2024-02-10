@@ -42,6 +42,19 @@ def handle_audio_chunk(data):
         process_audio_chunk(chunk_to_process)
 
 
+async def shutdown():
+    global shutdown_requested
+    print("Kicking off shutdown loop")
+    while not shutdown_requested:
+        try:
+            await asyncio.sleep(0.001)
+        except KeyboardInterrupt:
+            print("Shutting Down")
+            shutdown_requested = True
+        except Exception as e:
+            print("Shutdown with exception: {}".format(str(e)))
+
+
 async def run_blocking_io():
     loop = asyncio.get_running_loop()
     # None uses the default ThreadPoolExecutor
@@ -52,7 +65,10 @@ async def run_blocking_io():
 
 
 async def main():
+    executor = ThreadPoolExecutor(max_workers=1)
+    shutdown_task = await asyncio.get_event_loop().run_in_executor(executor, shutdown)
     await run_blocking_io()
+    await asyncio.gather(shutdown_task)
 
 
 if __name__ == "__main__":
