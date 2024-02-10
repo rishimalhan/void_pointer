@@ -11,12 +11,16 @@ socketio = SocketIO(app)
 
 # audio_buffer = bytearray()
 CHUNK_SIZE = 1024  # Define your chunk size here
+CHUNK_SIZE = 102400  # Define your chunk size here
 
 
 def process_audio_chunk(chunk):
     # Dummy function to process the audio chunk
     # Convert chunk to numpy array or process as needed
     print(f"Processed chunk size: {len(chunk)}")
+    audio_data = np.frombuffer(chunk, dtype="int16")
+    print(audio_data)
+    print(type(audio_data))
 
 
 @app.route("/")
