@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+package ndarray;
+
+// The ndarray service definition.
+service NdarrayService {
+  // Sends a NumPy ndarray
+  rpc SendNdarray (NdarrayRequest) returns (NdarrayReply) {}
+}
+
+// The request message containing the ndarray data.
+message NdarrayRequest {
+  bytes ndarray = 1; // Serialized ndarray
+}
+
+// The response message containing a confirmation message.
+message NdarrayReply {
+  string message = 1;
+}
