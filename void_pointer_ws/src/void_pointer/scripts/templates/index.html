@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Record Audio</title>
+    <script src="https://cdn.socket.io/4.0.1/socket.io.min.js"></script>
+</head>
+
+<body>
+    <h2>Audio Recorder</h2>
+    <button id="startRecord">Start Recording</button>
+    <button id="stopRecord" disabled>Stop Recording</button>
+
+    <script>
+        var socket = io(); // Connect to the server
+        var mediaRecorder;
+
+        document.getElementById("startRecord").onclick = function () {
+            navigator.mediaDevices.getUserMedia({ audio: true })
+                .then(stream => {
+                    mediaRecorder = new MediaRecorder(stream);
+                    mediaRecorder.start();
+                    document.getElementById("startRecord").disabled = true;
+                    document.getElementById("stopRecord").disabled = false;
+
+                    mediaRecorder.ondataavailable = event => {
+                        if (event.data.size > 0) {
+                            event.data.arrayBuffer().then(buffer => {
+                                socket.emit('audio_chunk', new Uint8Array(buffer));
+                            });
+                        }
+                    };
+                }).catch(error => console.log(error));
+        };
+
+        document.getElementById("stopRecord").onclick = function () {
+            mediaRecorder.stop();
+            document.getElementById("startRecord").disabled = false;
+            document.getElementById("stopRecord").disabled = true;
+        };
+    </script>
+</body>
+
+</html>
