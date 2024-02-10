@@ -18,7 +18,10 @@ def process_audio_chunk(chunk):
     # Dummy function to process the audio chunk
     # Convert chunk to numpy array or process as needed
     print(f"Processed chunk size: {len(chunk)}")
-    audio_data = np.frombuffer(chunk, dtype="int16")
+    try:
+        audio_data = np.frombuffer(chunk, dtype="int16")
+    except Exception as e:
+        print("Exception handling audio: ", e)
     print(audio_data)
     print(type(audio_data))
 
@@ -55,20 +58,13 @@ async def shutdown():
             print("Shutdown with exception: {}".format(str(e)))
 
 
-async def run_blocking_io():
-    loop = asyncio.get_running_loop()
-    # None uses the default ThreadPoolExecutor
-    await loop.run_in_executor(
-        None, socketio.run(app, host="0.0.0.0", port=5000, debug=True)
-    )
-    print("Audio receiver function has completed")
-
-
 async def main():
     executor = ThreadPoolExecutor(max_workers=1)
     shutdown_task = await asyncio.get_event_loop().run_in_executor(executor, shutdown)
-    await run_blocking_io()
-    await asyncio.gather(shutdown_task)
+    audio_task = await asyncio.get_event_loop().run_in_executor(
+        None, socketio.run(app, host="0.0.0.0", port=5000, debug=True)
+    )
+    await asyncio.gather(shutdown_task, audio_task)
 
 
 if __name__ == "__main__":
