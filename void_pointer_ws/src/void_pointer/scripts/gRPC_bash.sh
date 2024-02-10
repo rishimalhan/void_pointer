@@ -1,9 +1,9 @@
 #!/bin/bash
 
 # Directory containing proto files
-PROTO_DIR=./proto
+PROTO_DIR=app/void_pointer_ws/src/void_pointer/proto/
 # Output directory for generated Python bindings
-PYTHON_OUT_DIR=app/void_pointer_ws/src/void_pointer/proto/proto_gen
+PYTHON_OUT_DIR=app/void_pointer_ws/src/void_pointer/proto_gen
 
 # Create the output directory if it doesn't exist
 mkdir -p ${PYTHON_OUT_DIR}

@@ -1,6 +1,9 @@
 from flask import Flask, render_template
 from flask_socketio import SocketIO
 import numpy as np
+import asyncio
+from concurrent.futures import ThreadPoolExecutor
+from functools import partial
 
 app = Flask(__name__)
 app.config["SECRET_KEY"] = "secret!"
@@ -35,5 +38,19 @@ def handle_audio_chunk(data):
         process_audio_chunk(chunk_to_process)
 
 
+async def run_blocking_io():
+    loop = asyncio.get_running_loop()
+    # None uses the default ThreadPoolExecutor
+    await loop.run_in_executor(
+        None, socketio.run(app, host="0.0.0.0", port=5000, debug=True)
+    )
+    print("Audio receiver function has completed")
+
+
+async def main():
+    await run_blocking_io()
+
+
 if __name__ == "__main__":
     socketio.run(app, host="0.0.0.0", port=5000, debug=True)
+    asyncio.run(main())
