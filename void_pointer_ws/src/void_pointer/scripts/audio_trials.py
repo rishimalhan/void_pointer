@@ -6,7 +6,7 @@ app = Flask(__name__)
 app.config["SECRET_KEY"] = "secret!"
 socketio = SocketIO(app)
 
-audio_buffer = bytearray()
+# audio_buffer = bytearray()
 CHUNK_SIZE = 1024  # Define your chunk size here
 
 
@@ -23,7 +23,7 @@ def index():
 
 @socketio.on("audio_chunk")
 def handle_audio_chunk(data):
-    global audio_buffer
+    audio_buffer = bytearray()
     # Assuming data is the audio chunk bytes
     audio_buffer += data
     print("Received. Current size: ", len(audio_buffer))
