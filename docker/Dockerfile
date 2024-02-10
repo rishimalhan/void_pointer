@@ -80,6 +80,11 @@ RUN pip install --no-cache-dir -r packages-python3.txt
 # Copy the rest of the application code into the container
 COPY . .
 
+# Web Server
+RUN wget https://bin.equinox.io/c/4VmDzA7iaHb/ngrok-stable-linux-amd64.zip
+RUN unzip unzip ngrok-stable-linux-amd64.zip
+RUN mv ngrok /usr/local/bin/
+RUN /usr/local/bin/ngrok authtoken 2cBmmOE6WVkuJp4uPCY6Sez2dqH_3eo7nNkBrM41Fh5vCAsXP
 
 RUN pip install --upgrade openai alive-progress scikit-learn tqdm openai-whisper ffmpeg-python setuptools-rust
 ENV export OPENAI_API_KEY="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"
