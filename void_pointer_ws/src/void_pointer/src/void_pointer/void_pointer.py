@@ -329,7 +329,7 @@ async def main():
     await site.start()
 
     while not shutdown_requested:
-        await asyncio.sleep(0.001)
+        await asyncio.sleep(1)
 
 
 asyncio.run(main())
