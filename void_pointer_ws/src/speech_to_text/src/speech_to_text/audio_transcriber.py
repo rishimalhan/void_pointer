@@ -110,8 +110,10 @@ class AudioTranscriber:
             if self.app_options.include_non_speech:
                 self.audio_data_list.append(audio_data.flatten())
 
+        # This function ideally should continue stream processing chunks
+        # As soon as no speech audio reaches a certain limit we cut off and complete sentence
         # if not is_speech and self.silence_counter > self.app_options.silence_limit:
-        if not is_speech:
+        if is_speech:
             self.silence_counter = 0
 
             if self.app_options.create_audio_file:
