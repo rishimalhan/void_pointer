@@ -316,6 +316,7 @@ async def init_app():
 
 
 async def main():
+    global shutdown_requested
     # executor = ThreadPoolExecutor(max_workers=4)
 
     # user_settings = get_user_settings()
@@ -339,6 +340,9 @@ async def main():
     await runner.setup()
     site = web.TCPSite(runner, "0.0.0.0", 5000)
     await site.start()
+
+    while not shutdown_requested:
+        await asyncio.sleep(0.001)
 
 
 asyncio.run(main())
