@@ -31,7 +31,7 @@ logger.setLevel(logging.INFO)
 api_key = os.getenv("OPENAI_API_KEY")
 if not api_key:
     raise ValueError("Please set the OPENAI_API_KEY environment variable.")
-
+MODEL_NAME = "gpt-3.5-turbo-0125"
 openai.api_key = api_key
 TRANSCRIBER = None
 
@@ -45,7 +45,7 @@ class GPTInterface(OpenAIAPI):
     def initialize(self):
         message = "Your role is to chat with my 6 year old daughter, Myra. You can bring up topics of conversation that kids usually like. Ask follow up questions or change topics but keep the dialogue going. Make sure your response has some follow up question or way to move dialogue forward. Topics can range from music, dancing, cartoons, TV, school, etc. Beware to not say anything inappropriate for kids. While chatting smartly bring up good values as a human being. Keep your responses short and concise. Responses should not be more than a few sentences."
         response = openai.Completion.create(
-            engine="gpt-3.5-turbo-instruct",  # You can use other engines as necessary
+            engine=MODEL_NAME,  # You can use other engines as necessary
             prompt=message,
             max_tokens=150,  # Adjust as necessary
         )
@@ -53,7 +53,7 @@ class GPTInterface(OpenAIAPI):
 
     async def ask_gpt(self, message):
         response = openai.Completion.create(
-            engine="gpt-3.5-turbo-instruct",  # You can use other engines as necessary
+            engine=MODEL_NAME,  # You can use other engines as necessary
             prompt=message,
             max_tokens=150,  # Adjust as necessary
         )
