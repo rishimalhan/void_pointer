@@ -238,8 +238,10 @@ async def shutdown():
             logger.info("Shutting Down")
             await stop_transcription()
             shutdown_requested = True
+            return True
         except Exception as e:
             logger.warning("Shutdown with exception: {}".format(str(e)))
+            return True
 
 
 async def trigger_gpt():
@@ -262,32 +264,54 @@ async def trigger_gpt():
 
 
 # Webserver for Audio
+async def handle_main(request):
+    context = {"title": "Audio Recorder"}
+    response = aiohttp_jinja2.render_template("index.html", request, context)
+    return response
+
+
 async def handle_audio_post(request):
     # Receive the audio file
     data = await request.read()
-    logger.info(f"Received raw audio data: {data}")
+    audio_array = bytearray()
+    audio_array += data
     # Convert the audio data to a numpy array (example placeholder, adjust according to actual audio format)
-    audio_np = np.frombuffer(data, dtype=np.int16)
+    audio_np = np.frombuffer(audio_array, dtype=np.int16)
     TRANSCRIBER.process_audio(audio_np)
-    return web.Response(text="Audio received")
+    return web.Response(text="Audio received", content_type="text/plain")
 
 
 async def init_app():
     app = web.Application()
+    # Setup CORS
+    cors = aiohttp_cors.setup(
+        app,
+        defaults={
+            "*": aiohttp_cors.ResourceOptions(
+                allow_credentials=True,
+                expose_headers="*",
+                allow_headers=("X-Requested-With", "Content-Type", "Accept", "Origin"),
+                allow_methods=["POST", "GET"],
+            )
+        },
+    )
+
     # Setup Jinja2 for template rendering
     aiohttp_jinja2.setup(
         app, loader=jinja2.FileSystemLoader(os.path.join(package_path, "templates"))
     )
-    # Static routes for JS/CSS
-    app.router.add_static("/static/", path=package_path, name="static")
-    # POST route for audio data
-    app.router.add_post("/audio", handle_audio_post)
     # GET route for index page
-    app.router.add_get(
-        "/",
-        lambda request: aiohttp_jinja2.render_template("index.html", request, {}),
+    app.router.add_get("/", handle_main, name="main")
+    # Add your route
+    route = app.router.add_post("/audio", handle_audio_post, name="audio_post")
+    # Apply CORS to the route
+    cors.add(route)
+    # Static routes for JS/CSS
+    app.router.add_static(
+        "/static/",
+        path=os.path.join(package_path, "static"),
+        name="static",
     )
-    # app.on_startup.append(start_background_tasks)
     return app
 
 
@@ -322,31 +346,14 @@ async def main():
     # await asyncio.gather(
     #     transcription_task, shutdown_task, trigger_gpt_task, audio_input_task
     # )
+
     app = await init_app()
-
-    # Setup CORS
-    cors = aiohttp_cors.setup(
-        app,
-        defaults={
-            "*": aiohttp_cors.ResourceOptions(
-                allow_credentials=True,
-                expose_headers="*",
-                allow_headers=("X-Requested-With", "Content-Type", "Accept", "Origin"),
-                allow_methods=["POST", "GET"],
-            )
-        },
-    )
-    # Add your route
-    route = app.router.add_post("/audio", handle_audio_post)
-    # Apply CORS to the route
-    cors.add(route)
-
     runner = web.AppRunner(app)
     await runner.setup()
-    site = web.TCPSite(runner, "0.0.0.0", 5000)
+    site = web.TCPSite(runner, host="0.0.0.0", port=5004)
     await site.start()
-    while not shutdown_requested:
-        await asyncio.sleep(0.01)
+    results = await app["background_task"]
+    print(f"Shutdown Completed With Results: {results}")
 
 
 asyncio.run(main())

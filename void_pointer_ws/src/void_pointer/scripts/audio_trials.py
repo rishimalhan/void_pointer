@@ -81,35 +81,73 @@ import numpy as np
 import aiohttp_jinja2
 import jinja2
 import os
+import asyncio
+import aiohttp_cors
 
-script_dir = os.path.dirname(os.path.abspath(__file__))
+shutdown_requested = False
+package_path = "/Users/rmalhan/AI/void_pointer/void_pointer_ws/src/void_pointer"
 
 
-async def handle_audio(request):
+# Webserver for Audio
+async def handle_main(request):
+    context = {"title": "Audio Recorder"}
+    response = aiohttp_jinja2.render_template("index.html", request, context)
+    return response
+
+
+async def handle_audio_post(request):
     # Receive the audio file
     data = await request.read()
+    audio_array = bytearray()
+    audio_array += data
     # Convert the audio data to a numpy array (example placeholder, adjust according to actual audio format)
-    audio_np = np.frombuffer(data, dtype=np.int16)
-    print("Received audio data", audio_np)
-    return web.Response(text="Audio received")
+    audio_np = np.frombuffer(audio_array, dtype=np.int16)
+    print(audio_np)
+    return web.Response(text="Audio received", content_type="text/plain")
 
 
 async def init_app():
     app = web.Application()
+    # Setup CORS
+    cors = aiohttp_cors.setup(
+        app,
+        defaults={
+            "*": aiohttp_cors.ResourceOptions(
+                allow_credentials=True,
+                expose_headers="*",
+                allow_headers=("X-Requested-With", "Content-Type", "Accept", "Origin"),
+                allow_methods=["POST", "GET"],
+            )
+        },
+    )
+
     # Setup Jinja2 for template rendering
-    aiohttp_jinja2.setup(app, loader=jinja2.FileSystemLoader("templates"))
-    # Static routes for JS/CSS
-    app.router.add_static("/static/", path=static_dir, name="static")
-    # POST route for audio data
-    app.router.add_post("/audio", handle_audio)
+    aiohttp_jinja2.setup(
+        app, loader=jinja2.FileSystemLoader(os.path.join(package_path, "templates"))
+    )
     # GET route for index page
-    app.router.add_get(
-        "/",
-        lambda request: aiohttp_jinja2.render_template(
-            os.path.join(templates_dir, "index.html"), request, {}
-        ),
+    app.router.add_get("/", handle_main, name="main")
+    # Add your route
+    route = app.router.add_post("/audio", handle_audio_post, name="audio_post")
+    # Apply CORS to the route
+    cors.add(route)
+    # Static routes for JS/CSS
+    app.router.add_static(
+        "/static/",
+        path=os.path.join(package_path, "static"),
+        name="static",
     )
     return app
 
 
-web.run_app(init_app(), host="127.0.0.1", port=5000)
+async def main():
+    app = await init_app()
+    runner = web.AppRunner(app)
+    await runner.setup()
+    site = web.TCPSite(runner, host="0.0.0.0", port=5004)
+    await site.start()
+    while True:
+        await asyncio.sleep(3600)
+
+
+asyncio.run(main())
