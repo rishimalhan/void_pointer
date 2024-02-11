@@ -6,10 +6,9 @@ import threading
 import os
 import numpy as np
 import logging
-import openai
+import AsyncOpenAI
 import torchaudio
 from asyncio.queues import Queue
-from queue import Queue as sync_q
 from concurrent.futures import ThreadPoolExecutor
 from functools import partial
 from aiohttp import web
@@ -27,12 +26,11 @@ logging.basicConfig()
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
-
-api_key = os.getenv("OPENAI_API_KEY")
-if not api_key:
-    raise ValueError("Please set the OPENAI_API_KEY environment variable.")
+client = AsyncOpenAI(
+    # This is the default and can be omitted
+    api_key=os.environ.get("OPENAI_API_KEY"),
+)
 MODEL_NAME = "gpt-3.5-turbo-0125"
-openai.api_key = api_key
 TRANSCRIBER = None
 
 
@@ -42,22 +40,24 @@ class GPTInterface(OpenAIAPI):
         self.transcribed_text = Queue()
         self.initialize()
 
-    def initialize(self):
+    async def initialize(self):
         message = "Your role is to chat with my 6 year old daughter, Myra. You can bring up topics of conversation that kids usually like. Ask follow up questions or change topics but keep the dialogue going. Make sure your response has some follow up question or way to move dialogue forward. Topics can range from music, dancing, cartoons, TV, school, etc. Beware to not say anything inappropriate for kids. While chatting smartly bring up good values as a human being. Keep your responses short and concise. Responses should not be more than a few sentences."
-        response = openai.Completion.create(
-            engine=MODEL_NAME,  # You can use other engines as necessary
-            prompt=message,
-            max_tokens=150,  # Adjust as necessary
+        response = await client.chat.completions.create(
+            messages=[message], model=MODEL_NAME, stream=True
         )
-        logger.info(f"GPT initialized: {response.choices[0].text.strip()}")
+        logger.info(f"GPT initialized: Response:")
+        async for chunk in response:
+            print(chunk.choices[0].delta.content or "", end="")
 
     async def ask_gpt(self, message):
-        response = openai.Completion.create(
-            engine=MODEL_NAME,  # You can use other engines as necessary
-            prompt=message,
-            max_tokens=150,  # Adjust as necessary
+        return_response = ""
+        response = await client.chat.completions.create(
+            messages=[message], model=MODEL_NAME, stream=True
         )
-        return response.choices[0].text.strip()
+        logger.info(f"GPT initialized: Response:")
+        async for chunk in response:
+            " ".join(return_response, chunk.choices[0].delta.content or "", end=""))
+        return return_response
 
 
 gpt_interface = GPTInterface()
