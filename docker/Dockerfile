@@ -87,7 +87,7 @@ RUN mv ngrok /usr/local/bin/
 RUN /usr/local/bin/ngrok authtoken 2cBmmOE6WVkuJp4uPCY6Sez2dqH_3eo7nNkBrM41Fh5vCAsXP
 
 RUN pip install --upgrade openai alive-progress scikit-learn tqdm openai-whisper ffmpeg-python setuptools-rust
-ENV export OPENAI_API_KEY="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"
+ENV export OPENAI_API_KEY="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"
 RUN echo "alias python=python3" >> /root/.bashrc
 RUN chmod 755 /app/docker/entrypoint.sh
 
