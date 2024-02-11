@@ -71,3 +71,4 @@ Flask-SocketIO
 grpcio-tools
 async-openai
 aiohttp_jinja2
+aiohttp_cors

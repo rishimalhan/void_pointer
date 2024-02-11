@@ -312,6 +312,7 @@ async def init_app():
         path=os.path.join(package_path, "static"),
         name="static",
     )
+    app.on_startup.append(start_background_tasks)
     return app
 
 
