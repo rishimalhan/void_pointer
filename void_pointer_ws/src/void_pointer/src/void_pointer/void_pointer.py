@@ -292,11 +292,11 @@ async def init_app():
 
 async def start_background_tasks(app):
     user_settings = get_user_settings()
-    transcription_task = asyncio.create_task(
-        partial(start_transcription, user_settings)()
-    )
+    # transcription_task = asyncio.create_task(
+    #     partial(start_transcription, user_settings)()
+    # )
     shutdown_task = asyncio.create_task(shutdown())
-    trigger_gpt_task = asyncio.create_task(trigger_gpt())
+    # trigger_gpt_task = asyncio.create_task(trigger_gpt())
     app["background_task"] = asyncio.gather(shutdown_task)
 
 
