@@ -10,6 +10,8 @@ import torchaudio
 from asyncio.queues import Queue
 from concurrent.futures import ThreadPoolExecutor
 from functools import partial
+from flask import Flask, render_template
+from flask_socketio import SocketIO
 
 from faster_whisper import WhisperModel
 from speech_to_text.audio_transcriber import AppOptions
@@ -106,6 +108,7 @@ async def start_transcription(user_settings):
             app_settings,
             websocket_server,
             gpt_interface,
+            audio_streamer,
         )
         asyncio.set_event_loop(event_loop)
         thread = threading.Thread(target=event_loop.run_forever, daemon=True)
@@ -248,8 +251,27 @@ async def trigger_gpt():
         await asyncio.sleep(0.001)
 
 
+# Flask
+app = Flask(__name__)
+app.config["SECRET_KEY"] = "secret!"
+socketio = SocketIO(app)
+
+
+@app.route("/")
+def index():
+    return render_template("index.html")
+
+
+@socketio.on("audio_chunk")
+def handle_audio_chunk(data):
+    audio_buffer = bytearray()
+    # Assuming data is the audio chunk bytes
+    audio_buffer += data
+    print("Received. Current size: ", len(audio_buffer))
+
+
 async def main():
-    executor = ThreadPoolExecutor(max_workers=3)
+    executor = ThreadPoolExecutor(max_workers=4)
 
     user_settings = get_user_settings()
     transcription_task = await asyncio.get_event_loop().run_in_executor(
@@ -259,8 +281,13 @@ async def main():
     trigger_gpt_task = await asyncio.get_event_loop().run_in_executor(
         executor, trigger_gpt
     )
+    audio_input_task = await asyncio.get_event_loop().run_in_executor(
+        executor, socketio.run(app, host="0.0.0.0", port=5000, debug=True)
+    )
 
-    await asyncio.gather(transcription_task, shutdown_task, trigger_gpt_task)
+    await asyncio.gather(
+        audio_input_task, transcription_task, shutdown_task, trigger_gpt_task
+    )
 
 
 asyncio.run(main())
