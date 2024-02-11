@@ -266,7 +266,7 @@ async def handle_audio(request):
     data = await request.read()
     # Convert the audio data to a numpy array (example placeholder, adjust according to actual audio format)
     audio_np = np.frombuffer(data, dtype=np.int16)
-    print("Received audio data", audio_np)
+    logger.info(f"Received audio data: {audio_np}")
     TRANSCRIBER.process_audio(audio_np)
     return web.Response(text="Audio received")
 
