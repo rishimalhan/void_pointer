@@ -4,10 +4,12 @@ import asyncio
 import sys
 import threading
 import os
+import numpy as np
 import logging
 import openai
 import torchaudio
 from asyncio.queues import Queue
+from queue import Queue as sync_q
 from concurrent.futures import ThreadPoolExecutor
 from functools import partial
 from flask import Flask, render_template
@@ -31,6 +33,7 @@ if not api_key:
     raise ValueError("Please set the OPENAI_API_KEY environment variable.")
 
 openai.api_key = api_key
+TRANSCRIBER = None
 
 
 class GPTInterface(OpenAIAPI):
@@ -58,7 +61,7 @@ class GPTInterface(OpenAIAPI):
 
 
 gpt_interface = GPTInterface()
-transcriber: AudioTranscriber = None
+TRANSCRIBER: AudioTranscriber = None
 event_loop: asyncio.AbstractEventLoop = None
 thread: threading.Thread = None
 websocket_server: WebSocketServer = None
@@ -81,7 +84,7 @@ def get_user_settings():
 
 
 async def start_transcription(user_settings):
-    global transcriber, event_loop, thread, websocket_server, openai_api, gpt_interface
+    global TRANSCRIBER, event_loop, thread, websocket_server, openai_api, gpt_interface
     logger.info("Kicking off transcriber loop")
     try:
         (
@@ -101,31 +104,30 @@ async def start_transcription(user_settings):
                 websocket_server.start_server(), event_loop
             )
 
-        transcriber = AudioTranscriber(
+        TRANSCRIBER = AudioTranscriber(
             event_loop,
             whisper_model,
             filtered_transcribe_settings,
             app_settings,
             websocket_server,
             gpt_interface,
-            audio_streamer,
         )
         asyncio.set_event_loop(event_loop)
         thread = threading.Thread(target=event_loop.run_forever, daemon=True)
         thread.start()
 
-        asyncio.run_coroutine_threadsafe(transcriber.start_transcription(), event_loop)
+        asyncio.run_coroutine_threadsafe(TRANSCRIBER.start_transcription(), event_loop)
     except Exception as e:
         logger.warning("Exception while starting transcribe: {}".format(str(e)))
 
 
 async def stop_transcription():
     logger.info("Stopping transcription")
-    global transcriber, event_loop, thread, websocket_server, openai_api
-    if transcriber is None:
+    global TRANSCRIBER, event_loop, thread, websocket_server, openai_api
+    if TRANSCRIBER is None:
         return
     transcriber_future = asyncio.run_coroutine_threadsafe(
-        transcriber.stop_transcription(), event_loop
+        TRANSCRIBER.stop_transcription(), event_loop
     )
     transcriber_future.result()
 
@@ -139,7 +141,7 @@ async def stop_transcription():
         event_loop.call_soon_threadsafe(event_loop.stop)
         thread.join()
     event_loop.close()
-    transcriber = None
+    TRANSCRIBER = None
     event_loop = None
     thread = None
     websocket_server = None
@@ -147,7 +149,7 @@ async def stop_transcription():
 
 
 async def audio_transcription(user_settings, base64data):
-    global transcriber, openai_api
+    global TRANSCRIBER, openai_api
     try:
         (
             filtered_app_settings,
@@ -161,7 +163,7 @@ async def audio_transcription(user_settings, base64data):
         if app_settings.use_openai_api:
             openai_api = OpenAIAPI()
 
-        transcriber = AudioTranscriber(
+        TRANSCRIBER = AudioTranscriber(
             event_loop,
             whisper_model,
             filtered_transcribe_settings,
@@ -173,7 +175,7 @@ async def audio_transcription(user_settings, base64data):
         audio_data = base64_to_audio(base64data)
         if len(audio_data) > 0:
             write_audio("web", "voice", audio_data)
-            transcriber.batch_transcribe_audio(audio_data)
+            TRANSCRIBER.batch_transcribe_audio(audio_data)
 
     except Exception as e:
         logger.warning("Exception while transcribing: {}".format(str(e)))
@@ -264,10 +266,9 @@ def index():
 
 @socketio.on("audio_chunk")
 def handle_audio_chunk(data):
-    audio_buffer = bytearray()
-    # Assuming data is the audio chunk bytes
-    audio_buffer += data
+    audio_buffer = np.frombuffer(data, dtype="int16")
     print("Received. Current size: ", len(audio_buffer))
+    TRANSCRIBER.process_audio(audio_buffer)
 
 
 async def main():

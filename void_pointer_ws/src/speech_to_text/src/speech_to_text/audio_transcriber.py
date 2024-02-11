@@ -130,7 +130,11 @@ class AudioTranscriber:
             if self.transcribe_settings["word_timestamps"] == True:
                 for word in segment.words:
                     word_list.append(
-                        {"start": word.start, "end": word.end, "text": word.word,}
+                        {
+                            "start": word.start,
+                            "end": word.end,
+                            "text": word.word,
+                        }
                     )
             segment_list.append(
                 {
@@ -160,10 +164,10 @@ class AudioTranscriber:
     async def start_transcription(self):
         try:
             self.transcribing = True
-            self.stream = create_audio_stream(
-                self.app_options.audio_device, self.process_audio
-            )
-            self.stream.start()
+            # self.stream = create_audio_stream(
+            #     self.app_options.audio_device, self.process_audio
+            # )
+            # self.stream.start()
             self._running.set()
             self._transcribe_task = asyncio.run_coroutine_threadsafe(
                 self.transcribe_audio(), self.event_loop
@@ -201,4 +205,3 @@ class AudioTranscriber:
             logger.warning(
                 "Exception occurred while stopping transcribe {}".format(str(e))
             )
-
