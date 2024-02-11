@@ -262,7 +262,7 @@ async def trigger_gpt():
 
 
 # Webserver for Audio
-async def handle_audio(request):
+async def handle_audio_post(request):
     # Receive the audio file
     data = await request.read()
     logger.info(f"Received raw audio data: {data}")
@@ -281,7 +281,7 @@ async def init_app():
     # Static routes for JS/CSS
     app.router.add_static("/static/", path=package_path, name="static")
     # POST route for audio data
-    app.router.add_post("/audio", handle_audio)
+    app.router.add_post("/audio", handle_audio_post)
     # GET route for index page
     app.router.add_get(
         "/",
@@ -323,20 +323,23 @@ async def main():
     #     transcription_task, shutdown_task, trigger_gpt_task, audio_input_task
     # )
     app = await init_app()
-    cors = aiohttp_cors.setup(app)
 
-    # Configure CORS options
-    resource = cors.add(app.router.add_resource("/audio"))
-    cors.add(
-        resource.add_route("POST", handle_audio),
-        {
+    # Setup CORS
+    cors = aiohttp_cors.setup(
+        app,
+        defaults={
             "*": aiohttp_cors.ResourceOptions(
                 allow_credentials=True,
                 expose_headers="*",
-                allow_headers="*",
+                allow_headers=("X-Requested-With", "Content-Type", "Accept", "Origin"),
+                allow_methods=["POST", "GET"],
             )
         },
     )
+    # Add your route
+    route = app.router.add_post("/audio", handle_audio_post)
+    # Apply CORS to the route
+    cors.add(route)
 
     runner = web.AppRunner(app)
     await runner.setup()
