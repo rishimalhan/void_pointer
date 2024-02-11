@@ -47,7 +47,7 @@ class GPTInterface(OpenAIAPI):
 
     async def initialize(self):
         message = {
-            "role": "Kid Companion",
+            "role": "assistant",
             "content": "Your role is to chat with my 6 year old daughter, Myra. You can bring up topics of conversation that kids usually like. Ask follow up questions or change topics but keep the dialogue going. Make sure your response has some follow up question or way to move dialogue forward. Topics can range from music, dancing, cartoons, TV, school, etc. Beware to not say anything inappropriate for kids. While chatting smartly bring up good values as a human being. Keep your responses short and concise. Responses should not be more than a few sentences.",
         }
         response = await client.chat.completions.create(
@@ -63,7 +63,7 @@ class GPTInterface(OpenAIAPI):
 
         return_response = ""
         response = await client.chat.completions.create(
-            messages=[{"role": "Kid Companion", "content": message}],
+            messages=[{"role": "assistant", "content": message}],
             model=MODEL_NAME,
             stream=True,
         )

@@ -69,8 +69,6 @@ class AudioTranscriber:
                         executor, functools.partial(self.audio_queue.get, timeout=3.0)
                     )
 
-                    logger.info(f"DEBUG: Recv audio data: {audio_data}")
-
                     # Create a partial function for the model's transcribe method
                     func = functools.partial(
                         self.whisper_model.transcribe,
