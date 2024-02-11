@@ -274,7 +274,9 @@ async def handle_audio(request):
 async def init_app():
     app = web.Application()
     # Setup Jinja2 for template rendering
-    aiohttp_jinja2.setup(app, loader=jinja2.FileSystemLoader("templates"))
+    aiohttp_jinja2.setup(
+        app, loader=jinja2.FileSystemLoader(os.path.join(package_path, "templates"))
+    )
     # Static routes for JS/CSS
     app.router.add_static("/static/", path=package_path, name="static")
     # POST route for audio data
@@ -282,9 +284,7 @@ async def init_app():
     # GET route for index page
     app.router.add_get(
         "/",
-        lambda request: aiohttp_jinja2.render_template(
-            os.path.join(package_path, "templates", "index.html"), request, {}
-        ),
+        lambda request: aiohttp_jinja2.render_template("index.html", request, {}),
     )
     app.on_startup.append(start_background_tasks)
     return app
