@@ -13,7 +13,7 @@ shutdown_requested = False
 
 # audio_buffer = bytearray()
 CHUNK_SIZE = 1024  # Define your chunk size here
-CHUNK_SIZE = 102400  # Define your chunk size here
+CHUNK_SIZE = 0  # Define your chunk size here
 
 
 def process_audio_chunk(chunk):
@@ -42,8 +42,9 @@ def handle_audio_chunk(data):
 
     # If the buffer reaches or exceeds the CHUNK_SIZE, process it
     if len(audio_buffer) >= CHUNK_SIZE:
-        chunk_to_process = audio_buffer[:CHUNK_SIZE]
-        audio_buffer = audio_buffer[CHUNK_SIZE:]
+        # chunk_to_process = audio_buffer[:CHUNK_SIZE]
+        chunk_to_process = audio_buffer
+        # audio_buffer = audio_buffer[CHUNK_SIZE:]
         process_audio_chunk(chunk_to_process)
 
 
