@@ -35,10 +35,10 @@ TRANSCRIBER = None
 
 
 class GPTInterface(OpenAIAPI):
-    def __init__(self):
+    async def __init__(self):
         super(GPTInterface, self).__init__()
         self.transcribed_text = Queue()
-        self.initialize()
+        await self.initialize()
 
     async def initialize(self):
         message = "Your role is to chat with my 6 year old daughter, Myra. You can bring up topics of conversation that kids usually like. Ask follow up questions or change topics but keep the dialogue going. Make sure your response has some follow up question or way to move dialogue forward. Topics can range from music, dancing, cartoons, TV, school, etc. Beware to not say anything inappropriate for kids. While chatting smartly bring up good values as a human being. Keep your responses short and concise. Responses should not be more than a few sentences."
@@ -311,7 +311,7 @@ async def main():
     )
 
     await asyncio.gather(
-        audio_input_task, transcription_task, shutdown_task, trigger_gpt_task
+        transcription_task, shutdown_task, trigger_gpt_task, audio_input_task
     )
 
 
