@@ -264,9 +264,9 @@ async def trigger_gpt():
 async def handle_audio(request):
     # Receive the audio file
     data = await request.read()
+    logger.info(f"Received raw audio data: {data}")
     # Convert the audio data to a numpy array (example placeholder, adjust according to actual audio format)
     audio_np = np.frombuffer(data, dtype=np.int16)
-    logger.info(f"Received audio data: {audio_np}")
     TRANSCRIBER.process_audio(audio_np)
     return web.Response(text="Audio received")
 
