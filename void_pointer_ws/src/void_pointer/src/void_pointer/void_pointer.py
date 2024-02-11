@@ -12,8 +12,8 @@ from asyncio.queues import Queue
 from queue import Queue as sync_q
 from concurrent.futures import ThreadPoolExecutor
 from functools import partial
-from flask import Flask, render_template
-from flask_socketio import SocketIO
+from aiohttp import web
+import socketio
 
 from faster_whisper import WhisperModel
 from speech_to_text.audio_transcriber import AppOptions
@@ -253,25 +253,45 @@ async def trigger_gpt():
         await asyncio.sleep(0.001)
 
 
-# Flask
-app = Flask(__name__)
-app.config["SECRET_KEY"] = "secret!"
-socketio = SocketIO(app)
+# Create a Socket.IO server
+sio = socketio.AsyncServer(async_mode="aiohttp")
+app = web.Application()
+sio.attach(app)
 
 
-@app.route("/")
-def index():
-    return render_template("index.html")
+# Define the event for connecting
+@sio.event
+async def connect(sid, environ):
+    print("Client connected", sid)
 
 
-@socketio.on("audio_chunk")
-def handle_audio_chunk(data):
+# Define the event for disconnecting
+@sio.event
+async def disconnect(sid):
+    print("Client disconnected", sid)
+
+
+# Handle audio data received from the client
+@sio.event
+async def audio_chunk(sid, data):
+    print(f"Received audio chunk from {sid}, length: {len(data)}")
+    # Process the audio data...
     audio_buffer = bytearray()
     # Assuming data is the audio chunk bytes
     audio_buffer += data
     audio_buffer = np.frombuffer(audio_buffer, dtype="int16")
     print("Received. Current size: ", len(audio_buffer))
     TRANSCRIBER.process_audio(audio_buffer)
+
+
+# Define a simple HTTP GET route for testing
+async def index(request):
+    return web.Response(
+        text="Void Pointer Server is Running!", content_type="text/html"
+    )
+
+
+app.router.add_get("/", index)
 
 
 async def main():
@@ -286,7 +306,7 @@ async def main():
         executor, trigger_gpt
     )
     audio_input_task = await asyncio.get_event_loop().run_in_executor(
-        executor, socketio.run(app, host="0.0.0.0", port=5000, debug=True)
+        executor, web.run_app(app, port=5000)
     )
 
     await asyncio.gather(
