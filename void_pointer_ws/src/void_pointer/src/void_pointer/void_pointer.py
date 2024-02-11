@@ -306,7 +306,7 @@ async def main():
         executor, trigger_gpt
     )
     audio_input_task = await asyncio.get_event_loop().run_in_executor(
-        executor, web.run_app(app, port=5000)
+        executor, web.run_app(app, host="0.0.0.0", port=5000)
     )
 
     await asyncio.gather(
