@@ -12,7 +12,10 @@ from asyncio.queues import Queue
 from concurrent.futures import ThreadPoolExecutor
 from functools import partial
 from aiohttp import web
+import aiohttp_jinja2
+import jinja2
 import socketio
+from rospkg.rospack import RosPack
 
 from faster_whisper import WhisperModel
 from speech_to_text.audio_transcriber import AppOptions
@@ -26,6 +29,7 @@ logging.basicConfig()
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
+package_path = RosPack().get_path("void_pointer")
 client = AsyncOpenAI(
     # This is the default and can be omitted
     api_key=os.environ.get("OPENAI_API_KEY"),
@@ -256,45 +260,34 @@ async def trigger_gpt():
         await asyncio.sleep(0.001)
 
 
-# Create a Socket.IO server
-sio = socketio.AsyncServer(async_mode="aiohttp")
-app = web.Application()
-sio.attach(app)
+# Webserver for Audio
+async def handle_audio(request):
+    # Receive the audio file
+    data = await request.read()
+    # Convert the audio data to a numpy array (example placeholder, adjust according to actual audio format)
+    audio_np = np.frombuffer(data, dtype=np.int16)
+    print("Received audio data", audio_np)
+    TRANSCRIBER.process_audio(audio_np)
+    return web.Response(text="Audio received")
 
 
-# Define the event for connecting
-@sio.event
-async def connect(sid, environ):
-    print("Client connected", sid)
-
-
-# Define the event for disconnecting
-@sio.event
-async def disconnect(sid):
-    print("Client disconnected", sid)
-
-
-# Handle audio data received from the client
-@sio.event
-async def audio_chunk(sid, data):
-    print(f"Received audio chunk from {sid}, length: {len(data)}")
-    # Process the audio data...
-    audio_buffer = bytearray()
-    # Assuming data is the audio chunk bytes
-    audio_buffer += data
-    audio_buffer = np.frombuffer(audio_buffer, dtype="int16")
-    print("Received. Current size: ", len(audio_buffer))
-    TRANSCRIBER.process_audio(audio_buffer)
-
-
-# Define a simple HTTP GET route for testing
-async def index(request):
-    return web.Response(
-        text="Void Pointer Server is Running!", content_type="text/html"
+async def init_app():
+    app = web.Application()
+    # Setup Jinja2 for template rendering
+    aiohttp_jinja2.setup(app, loader=jinja2.FileSystemLoader("templates"))
+    # Static routes for JS/CSS
+    app.router.add_static("/static/", path=package_path, name="static")
+    # POST route for audio data
+    app.router.add_post("/audio", handle_audio)
+    # GET route for index page
+    app.router.add_get(
+        "/",
+        lambda request: aiohttp_jinja2.render_template(
+            os.path.join(package_path, "index.html"), request, {}
+        ),
     )
-
-
-app.router.add_get("/", index)
+    app.on_startup.append(start_background_tasks)
+    return app
 
 
 async def start_background_tasks(app):
@@ -307,12 +300,6 @@ async def start_background_tasks(app):
     app["background_task"] = asyncio.gather(
         transcription_task, shutdown_task, trigger_gpt_task
     )
-
-
-async def init_app():
-    app = web.Application()
-    app.on_startup.append(start_background_tasks)
-    return app
 
 
 async def main():
