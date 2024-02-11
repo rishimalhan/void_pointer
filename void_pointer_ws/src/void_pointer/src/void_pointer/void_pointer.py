@@ -53,7 +53,7 @@ class GPTInterface(OpenAIAPI):
 
     async def ask_gpt(self, message):
         response = openai.Completion.create(
-            engine="text-davinci-003",  # You can use other engines as necessary
+            engine="gpt-3.5-turbo-instruct",  # You can use other engines as necessary
             prompt=message,
             max_tokens=150,  # Adjust as necessary
         )
@@ -266,7 +266,10 @@ def index():
 
 @socketio.on("audio_chunk")
 def handle_audio_chunk(data):
-    audio_buffer = np.frombuffer(data, dtype="int16")
+    audio_buffer = bytearray()
+    # Assuming data is the audio chunk bytes
+    audio_buffer += data
+    audio_buffer = np.frombuffer(audio_buffer, dtype="int16")
     print("Received. Current size: ", len(audio_buffer))
     TRANSCRIBER.process_audio(audio_buffer)
 
