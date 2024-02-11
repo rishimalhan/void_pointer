@@ -329,32 +329,13 @@ async def start_background_tasks(app):
 
 
 async def main():
-    # executor = ThreadPoolExecutor(max_workers=4)
-
-    # user_settings = get_user_settings()
-    # transcription_task = await asyncio.get_event_loop().run_in_executor(
-    #     executor, partial(start_transcription, user_settings)
-    # )
-    # shutdown_task = await asyncio.get_event_loop().run_in_executor(executor, shutdown)
-    # trigger_gpt_task = await asyncio.get_event_loop().run_in_executor(
-    #     executor, trigger_gpt
-    # )
-    # audio_input_task = await asyncio.get_event_loop().run_in_executor(
-    #     executor,
-    #     web.run_app(app, host="0.0.0.0", port=5000, loop=asyncio.get_event_loop()),
-    # )
-
-    # await asyncio.gather(
-    #     transcription_task, shutdown_task, trigger_gpt_task, audio_input_task
-    # )
-
     app = await init_app()
     runner = web.AppRunner(app)
     await runner.setup()
     site = web.TCPSite(runner, host="0.0.0.0", port=5000)
     await site.start()
     results = await app["background_task"]
-    print(f"Shutdown Completed With Results: {results}")
+    logger.info(f"Shutdown Completed With Results: {results}")
 
 
 asyncio.run(main())
