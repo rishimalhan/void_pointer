@@ -297,25 +297,48 @@ async def index(request):
 app.router.add_get("/", index)
 
 
-async def main():
-    executor = ThreadPoolExecutor(max_workers=4)
-
+async def start_background_tasks(app):
     user_settings = get_user_settings()
-    transcription_task = await asyncio.get_event_loop().run_in_executor(
-        executor, partial(start_transcription, user_settings)
+    transcription_task = asyncio.create_task(
+        partial(start_transcription, user_settings)()
     )
-    shutdown_task = await asyncio.get_event_loop().run_in_executor(executor, shutdown)
-    trigger_gpt_task = await asyncio.get_event_loop().run_in_executor(
-        executor, trigger_gpt
-    )
-    audio_input_task = await asyncio.get_event_loop().run_in_executor(
-        executor,
-        web.run_app(app, host="0.0.0.0", port=5000, loop=asyncio.get_event_loop()),
+    shutdown_task = asyncio.create_task(shutdown())
+    trigger_gpt_task = asyncio.create_task(trigger_gpt())
+    app["background_task"] = asyncio.gather(
+        transcription_task, shutdown_task, trigger_gpt_task
     )
 
-    await asyncio.gather(
-        transcription_task, shutdown_task, trigger_gpt_task, audio_input_task
-    )
+
+async def init_app():
+    app = web.Application()
+    app.on_startup.append(start_background_tasks)
+    return app
+
+
+async def main():
+    # executor = ThreadPoolExecutor(max_workers=4)
+
+    # user_settings = get_user_settings()
+    # transcription_task = await asyncio.get_event_loop().run_in_executor(
+    #     executor, partial(start_transcription, user_settings)
+    # )
+    # shutdown_task = await asyncio.get_event_loop().run_in_executor(executor, shutdown)
+    # trigger_gpt_task = await asyncio.get_event_loop().run_in_executor(
+    #     executor, trigger_gpt
+    # )
+    # audio_input_task = await asyncio.get_event_loop().run_in_executor(
+    #     executor,
+    #     web.run_app(app, host="0.0.0.0", port=5000, loop=asyncio.get_event_loop()),
+    # )
+
+    # await asyncio.gather(
+    #     transcription_task, shutdown_task, trigger_gpt_task, audio_input_task
+    # )
+    app = await init_app()
+    runner = web.AppRunner(app)
+    await runner.setup()
+    site = web.TCPSite(runner, "localhost", 5000)
+    await site.start()
 
 
 asyncio.run(main())
