@@ -333,8 +333,8 @@ async def main():
     await site.start()
     logger.info("Step 5 complete")
 
+    logger.info("Sleeping")
     while not shutdown_requested:
-        logger.info("Sleeping")
         await asyncio.sleep(0.001)
 
 
