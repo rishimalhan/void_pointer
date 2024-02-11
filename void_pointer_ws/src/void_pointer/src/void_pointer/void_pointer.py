@@ -297,9 +297,7 @@ async def start_background_tasks(app):
     )
     shutdown_task = asyncio.create_task(shutdown())
     trigger_gpt_task = asyncio.create_task(trigger_gpt())
-    app["background_task"] = asyncio.gather(
-        transcription_task, shutdown_task, trigger_gpt_task
-    )
+    app["background_task"] = asyncio.gather(shutdown_task)
 
 
 async def main():
