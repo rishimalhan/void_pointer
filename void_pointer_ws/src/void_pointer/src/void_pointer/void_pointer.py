@@ -15,6 +15,7 @@ from aiohttp import web
 import aiohttp_jinja2
 import jinja2
 import socketio
+import aiohttp_cors
 from rospkg.rospack import RosPack
 
 from faster_whisper import WhisperModel
@@ -322,12 +323,27 @@ async def main():
     #     transcription_task, shutdown_task, trigger_gpt_task, audio_input_task
     # )
     app = await init_app()
+    cors = aiohttp_cors.setup(app)
+
+    # Configure CORS options
+    resource = cors.add(app.router.add_resource("/audio"))
+    cors.add(
+        resource.add_route("POST", handle_audio),
+        {
+            "*": aiohttp_cors.ResourceOptions(
+                allow_credentials=True,
+                expose_headers="*",
+                allow_headers="*",
+            )
+        },
+    )
+
     runner = web.AppRunner(app)
     await runner.setup()
     site = web.TCPSite(runner, "0.0.0.0", 5000)
     await site.start()
     while not shutdown_requested:
-        await asyncio.sleep(3600)
+        await asyncio.sleep(0.01)
 
 
 asyncio.run(main())
