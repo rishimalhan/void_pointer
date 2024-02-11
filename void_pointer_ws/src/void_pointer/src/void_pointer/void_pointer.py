@@ -46,7 +46,10 @@ class GPTInterface(OpenAIAPI):
         self._initialize = False
 
     async def initialize(self):
-        message = "Your role is to chat with my 6 year old daughter, Myra. You can bring up topics of conversation that kids usually like. Ask follow up questions or change topics but keep the dialogue going. Make sure your response has some follow up question or way to move dialogue forward. Topics can range from music, dancing, cartoons, TV, school, etc. Beware to not say anything inappropriate for kids. While chatting smartly bring up good values as a human being. Keep your responses short and concise. Responses should not be more than a few sentences."
+        message = {
+            "role": "Kid Companion",
+            "content": "Your role is to chat with my 6 year old daughter, Myra. You can bring up topics of conversation that kids usually like. Ask follow up questions or change topics but keep the dialogue going. Make sure your response has some follow up question or way to move dialogue forward. Topics can range from music, dancing, cartoons, TV, school, etc. Beware to not say anything inappropriate for kids. While chatting smartly bring up good values as a human being. Keep your responses short and concise. Responses should not be more than a few sentences.",
+        }
         response = await client.chat.completions.create(
             messages=[message], model=MODEL_NAME, stream=True
         )
@@ -60,7 +63,9 @@ class GPTInterface(OpenAIAPI):
 
         return_response = ""
         response = await client.chat.completions.create(
-            messages=[message], model=MODEL_NAME, stream=True
+            messages=[{"role": "Kid Companion", "content": message}],
+            model=MODEL_NAME,
+            stream=True,
         )
         logger.info(f"GPT initialized: Response:")
         async for chunk in response:
