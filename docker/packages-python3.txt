@@ -69,3 +69,4 @@ vocos
 Flask
 Flask-SocketIO
 grpcio-tools
+async-openai

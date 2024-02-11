@@ -6,7 +6,7 @@ import threading
 import os
 import numpy as np
 import logging
-import AsyncOpenAI
+from openai import AsyncOpenAI
 import torchaudio
 from asyncio.queues import Queue
 from concurrent.futures import ThreadPoolExecutor
