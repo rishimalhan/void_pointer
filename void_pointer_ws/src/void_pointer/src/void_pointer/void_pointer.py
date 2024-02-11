@@ -351,7 +351,7 @@ async def main():
     app = await init_app()
     runner = web.AppRunner(app)
     await runner.setup()
-    site = web.TCPSite(runner, host="0.0.0.0", port=5004)
+    site = web.TCPSite(runner, host="0.0.0.0", port=5000)
     await site.start()
     results = await app["background_task"]
     print(f"Shutdown Completed With Results: {results}")
