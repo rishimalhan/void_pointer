@@ -323,13 +323,19 @@ async def main():
     #     transcription_task, shutdown_task, trigger_gpt_task, audio_input_task
     # )
     app = await init_app()
+    logger.info("Step 1 complete")
     runner = web.AppRunner(app)
+    logger.info("Step 2 complete")
     await runner.setup()
+    logger.info("Step 3 complete")
     site = web.TCPSite(runner, "0.0.0.0", 5000)
+    logger.info("Step 4 complete")
     await site.start()
+    logger.info("Step 5 complete")
 
     while not shutdown_requested:
-        await asyncio.sleep(1)
+        logger.info("Sleeping")
+        await asyncio.sleep(0.001)
 
 
 asyncio.run(main())
