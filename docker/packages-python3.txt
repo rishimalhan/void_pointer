@@ -70,3 +70,4 @@ Flask
 Flask-SocketIO
 grpcio-tools
 async-openai
+aiohttp_jinja2

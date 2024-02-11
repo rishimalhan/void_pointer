@@ -283,7 +283,7 @@ async def init_app():
     app.router.add_get(
         "/",
         lambda request: aiohttp_jinja2.render_template(
-            os.path.join(package_path, "index.html"), request, {}
+            os.path.join(package_path, "templates", "index.html"), request, {}
         ),
     )
     app.on_startup.append(start_background_tasks)
