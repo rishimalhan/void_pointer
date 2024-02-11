@@ -303,7 +303,6 @@ async def start_background_tasks(app):
 
 
 async def main():
-    global shutdown_requested
     # executor = ThreadPoolExecutor(max_workers=4)
 
     # user_settings = get_user_settings()
@@ -322,6 +321,7 @@ async def main():
     # await asyncio.gather(
     #     transcription_task, shutdown_task, trigger_gpt_task, audio_input_task
     # )
+    logger.info("Step 1 starting")
     app = await init_app()
     logger.info("Step 1 complete")
     runner = web.AppRunner(app)
