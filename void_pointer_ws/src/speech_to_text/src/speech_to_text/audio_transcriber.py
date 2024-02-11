@@ -101,9 +101,11 @@ class AudioTranscriber:
     def process_audio(self, audio_data: np.ndarray):
         is_speech = self.vad.is_speech(audio_data)
         if is_speech:
+            logger.info("DEBUG: Audio is speech")
             self.silence_counter = 0
             self.audio_data_list.append(audio_data.flatten())
         else:
+            logger.info("DEBUG: Audio is not speech")
             self.silence_counter += 1
             if self.app_options.include_non_speech:
                 self.audio_data_list.append(audio_data.flatten())
@@ -117,8 +119,10 @@ class AudioTranscriber:
             if len(self.audio_data_list) > self.app_options.noise_threshold:
                 concatenate_audio_data = np.concatenate(self.audio_data_list)
                 self.audio_data_list.clear()
+                logger.info("DEBUG: Adding audio to queue")
                 self.audio_queue.put(concatenate_audio_data)
             else:
+                logger.info("DEBUG: Clearing audio from list")
                 # noise clear
                 self.audio_data_list.clear()
 
