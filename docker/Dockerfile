@@ -82,7 +82,7 @@ COPY . .
 
 # Web Server
 RUN wget https://bin.equinox.io/c/4VmDzA7iaHb/ngrok-stable-linux-amd64.zip
-RUN unzip unzip ngrok-stable-linux-amd64.zip
+RUN unzip ngrok-stable-linux-amd64.zip
 RUN mv ngrok /usr/local/bin/
 RUN /usr/local/bin/ngrok authtoken 2cBmmOE6WVkuJp4uPCY6Sez2dqH_3eo7nNkBrM41Fh5vCAsXP
 

@@ -8,6 +8,8 @@ from functools import partial
 app = Flask(__name__)
 app.config["SECRET_KEY"] = "secret!"
 socketio = SocketIO(app)
+global shutdown_requested
+shutdown_requested = False
 
 # audio_buffer = bytearray()
 CHUNK_SIZE = 1024  # Define your chunk size here
@@ -60,9 +62,11 @@ async def shutdown():
 
 async def main():
     executor = ThreadPoolExecutor(max_workers=1)
-    shutdown_task = await asyncio.get_event_loop().run_in_executor(executor, shutdown)
+    shutdown_task = await asyncio.get_event_loop().run_in_executor(
+        executor, shutdown, debug=True
+    )
     audio_task = await asyncio.get_event_loop().run_in_executor(
-        None, socketio.run(app, host="0.0.0.0", port=5000, debug=True)
+        executor, socketio.run(app, host="0.0.0.0", port=5000, debug=True)
     )
     await asyncio.gather(shutdown_task, audio_task)
 
