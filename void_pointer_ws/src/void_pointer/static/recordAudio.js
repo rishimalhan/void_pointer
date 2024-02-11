@@ -9,7 +9,13 @@ async function startRecording() {
     document.getElementById('startRecord').disabled = true;
     document.getElementById('stopRecord').disabled = false;
 
-    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    const stream = await navigator.mediaDevices.getUserMedia({
+        audio:
+        {
+            sampleRate: 16000,
+            channelCount: 1,
+        }
+    });
     mediaRecorder = new MediaRecorder(stream);
 
     mediaRecorder.ondataavailable = event => {
