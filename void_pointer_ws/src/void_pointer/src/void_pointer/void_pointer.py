@@ -56,7 +56,7 @@ class GPTInterface(OpenAIAPI):
         )
         logger.info(f"GPT initialized: Response:")
         async for chunk in response:
-            " ".join(return_response, chunk.choices[0].delta.content or "", end=""))
+            " ".join(return_response, chunk.choices[0].delta.content or "", end="")
         return return_response
 
 
