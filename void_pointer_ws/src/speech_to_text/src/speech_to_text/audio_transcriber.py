@@ -69,6 +69,8 @@ class AudioTranscriber:
                         executor, functools.partial(self.audio_queue.get, timeout=3.0)
                     )
 
+                    logger.info(f"DEBUG: Recv audio data: {audio_data}")
+
                     # Create a partial function for the model's transcribe method
                     func = functools.partial(
                         self.whisper_model.transcribe,
@@ -195,12 +197,12 @@ class AudioTranscriber:
                 self.batch_transcribe_audio(audio_data)
 
             if self.stream is not None:
-                self._running.clear()
                 self.stream.stop()
                 self.stream.close()
                 self.stream = None
                 logger.info("Transcription stopped.")
             else:
+                self._running.clear()
                 logger.warning("No active stream to stop.")
         except Exception as e:
             logger.warning(
