@@ -270,7 +270,7 @@ async def handle_main(request):
     return response
 
 
-async def handle_audio_post(request, dtype=np.int16):
+async def handle_audio_post(request, dtype=np.float16):
     # Receive the audio file
     data = await request.read()
     audio_array = bytearray()
