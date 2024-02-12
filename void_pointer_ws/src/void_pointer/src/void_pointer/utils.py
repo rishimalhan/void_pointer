@@ -34,6 +34,6 @@ def bytes_to_chunks(byte_array, chunk_size, dtype=np.float32):
 
         # Ensure the chunk is the expected size, otherwise it's a partial chunk and should be ignored or handled differently
         if chunk.shape[0] == chunk_size:
-            chunks.append(chunk)
+            chunks.append(chunk.reshape((chunk.shape[0], 1)))
 
     return chunks

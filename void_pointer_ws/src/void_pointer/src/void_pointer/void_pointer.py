@@ -298,7 +298,6 @@ async def handle_audio_post(request, dtype=np.float32):
     # Now convert the buffer to a numpy array
     audio_np = bytes_to_chunks(audio_array, chunk_size=CHUNK, dtype=dtype)
     for audio_chunk in audio_np:
-        logger.info(audio_chunk.shape)
         TRANSCRIBER.process_audio(audio_chunk)
     return web.Response(text="Audio received", content_type="text/plain")
 
