@@ -95,14 +95,25 @@ async def handle_main(request):
     return response
 
 
-async def handle_audio_post(request):
+async def handle_audio_post(request, dtype=np.float32):
     # Receive the audio file
     data = await request.read()
     audio_array = bytearray()
     audio_array += data
+
     # Convert the audio data to a numpy array (example placeholder, adjust according to actual audio format)
-    audio_np = np.frombuffer(audio_array, dtype=np.int16)
-    print(audio_np)
+    element_size = np.dtype(dtype).itemsize
+    buffer_size = len(audio_array)
+
+    # Ensure the buffer size is a multiple of the element size
+    if buffer_size % element_size != 0:
+        # Trim the buffer to make it fit, this will remove the last few bytes:
+        audio_array = audio_array[: buffer_size - (buffer_size % element_size)]
+
+    # Now convert the buffer to a numpy array
+    audio_np = np.frombuffer(audio_array, dtype=dtype)
+    print(len(audio_array))
+    print(len(audio_np))
     return web.Response(text="Audio received", content_type="text/plain")
 
 

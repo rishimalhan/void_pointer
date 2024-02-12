@@ -37,6 +37,7 @@ client = AsyncOpenAI(
 )
 MODEL_NAME = "gpt-3.5-turbo-0125"
 TRANSCRIBER = None
+CHUNK = 512
 
 
 class GPTInterface(OpenAIAPI):
@@ -69,6 +70,8 @@ class GPTInterface(OpenAIAPI):
         )
         logger.info(f"GPT initialized: Response:")
         async for chunk in response:
+            if response is None:
+                continue
             return_response = " ".join(
                 [return_response, chunk.choices[0].delta.content]
             )
@@ -293,9 +296,13 @@ async def handle_audio_post(request, dtype=np.float32):
         audio_array = audio_array[: buffer_size - (buffer_size % element_size)]
 
     # Now convert the buffer to a numpy array
-    audio_np = np.frombuffer(audio_array, dtype=dtype)
-    logger.info(f"DEBUG: Sending audio for processing {audio_np}")
-    TRANSCRIBER.process_audio(audio_np)
+    logger.info("DEBUG: Sending audio for processing.")
+    for i in np.arange(0, len(audio_array), CHUNK):
+        if i + CHUNK > len(audio_array) - 1:
+            continue
+        audio = audio_array[i : i + CHUNK]
+        audio_np = np.frombuffer(audio, dtype=dtype)
+        TRANSCRIBER.process_audio(audio_np)
     return web.Response(text="Audio received", content_type="text/plain")
 
 
