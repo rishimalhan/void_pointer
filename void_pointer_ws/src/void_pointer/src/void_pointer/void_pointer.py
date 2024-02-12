@@ -16,6 +16,7 @@ import aiohttp_jinja2
 import jinja2
 import socketio
 import aiohttp_cors
+from void_pointer.utils import bytes_to_chunks
 from rospkg.rospack import RosPack
 
 from faster_whisper import WhisperModel
@@ -297,12 +298,9 @@ async def handle_audio_post(request, dtype=np.float32):
 
     # Now convert the buffer to a numpy array
     logger.info("DEBUG: Sending audio for processing.")
-    audio_np = np.frombuffer(audio_array, dtype=dtype)
-    for i in np.arange(0, len(audio_np), CHUNK):
-        if i + CHUNK > len(audio_np) - 1:
-            continue
-        audio = audio_np[i : i + CHUNK]
-        TRANSCRIBER.process_audio(audio)
+    audio_np = bytes_to_chunks(audio_array, chunk_size=CHUNK, dtype=dtype)
+    for audio_chunk in audio_np:
+        TRANSCRIBER.process_audio(audio_chunk)
     return web.Response(text="Audio received", content_type="text/plain")
 
 
