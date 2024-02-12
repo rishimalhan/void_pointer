@@ -298,7 +298,6 @@ async def handle_audio_post(request, dtype=np.float32):
     # Now convert the buffer to a numpy array
     audio_np = bytes_to_chunks(audio_array, chunk_size=CHUNK, dtype=dtype)
     for audio_chunk in audio_np:
-        logger.info(audio_chunk)
         if contains_non_numbers(audio_chunk):
             logger.info("WARNING. Arr has non numbers")
         logger.info(f"{np.min(audio_chunk)}, {np.max(audio_chunk)}")
