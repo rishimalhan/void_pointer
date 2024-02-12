@@ -18,6 +18,25 @@ def contains_non_numbers(arr):
     return False
 
 
+def filter_numeric_elements(arr):
+    # For arrays of numeric types, filter out NaN and Inf values
+    if arr.dtype.kind in "fc":  # Floating-point or complex floating-point
+        filtered_arr = arr[np.isfinite(arr)]
+        return filtered_arr
+
+    # For object arrays, filter out non-numeric types
+    elif arr.dtype == object:
+        numeric_elements = [
+            x
+            for x in arr
+            if isinstance(x, (int, float, complex, np.number)) and not np.isnan(x)
+        ]
+        return np.array(numeric_elements, dtype=object)
+
+    # If none of the above, return the array as is
+    return arr
+
+
 def bytes_to_chunks(byte_array, chunk_size, dtype=np.float32):
     element_size = np.dtype(dtype).itemsize
     buffer_size = len(byte_array)
@@ -29,6 +48,8 @@ def bytes_to_chunks(byte_array, chunk_size, dtype=np.float32):
 
     # Now convert the buffer to a numpy array
     audio_np = np.frombuffer(byte_array, dtype=dtype)
+
+    audio_np = filter_numeric_elements(audio_np)
 
     # Calculate the total number of chunks
     total_chunks = len(audio_np) // chunk_size
