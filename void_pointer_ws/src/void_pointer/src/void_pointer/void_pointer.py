@@ -297,12 +297,12 @@ async def handle_audio_post(request, dtype=np.float32):
 
     # Now convert the buffer to a numpy array
     logger.info("DEBUG: Sending audio for processing.")
-    for i in np.arange(0, len(audio_array), CHUNK):
-        if i + CHUNK > len(audio_array) - 1:
+    audio_np = np.frombuffer(audio_array, dtype=dtype)
+    for i in np.arange(0, len(audio_np), CHUNK):
+        if i + CHUNK > len(audio_np) - 1:
             continue
-        audio = audio_array[i : i + CHUNK]
-        audio_np = np.frombuffer(audio, dtype=dtype)
-        TRANSCRIBER.process_audio(audio_np)
+        audio = audio_np[i : i + CHUNK]
+        TRANSCRIBER.process_audio(audio)
     return web.Response(text="Audio received", content_type="text/plain")
 
 
