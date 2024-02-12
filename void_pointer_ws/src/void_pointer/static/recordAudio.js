@@ -14,27 +14,21 @@ async function startRecording() {
         {
             sampleRate: 16000,
             channelCount: 1,
-            echoCancellation: true
+            echoCancellation: true,
         }
-    }).then(stream => {
-        // Now you can use this stream with MediaRecorder
-        const options = { mimeType: 'audio/webm' };
-        const mediaRecorder = new MediaRecorder(stream, options);
-        // Proceed with setting up event handlers and starting the MediaRecorder
-        mediaRecorder.ondataavailable = event => {
-            audioChunks.push(event.data);
-        };
-
-        mediaRecorder.onstop = () => {
-            const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
-            sendAudioToServer(audioBlob);
-        };
-
-        mediaRecorder.start();
-    }).catch(error => {
-        console.error('getUserMedia error:', error);
     });
-    // mediaRecorder = new MediaRecorder(stream);
+    mediaRecorder = new MediaRecorder(stream);
+
+    mediaRecorder.ondataavailable = event => {
+        audioChunks.push(event.data);
+    };
+
+    mediaRecorder.onstop = () => {
+        const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+        sendAudioToServer(audioBlob);
+    };
+
+    mediaRecorder.start();
 }
 
 function stopRecording() {
