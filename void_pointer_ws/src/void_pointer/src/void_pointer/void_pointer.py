@@ -300,6 +300,9 @@ async def handle_audio_post(request, dtype=np.float32):
     for audio_chunk in audio_np:
         if contains_non_numbers(audio_chunk):
             logger.info("WARNING. Arr has non numbers")
+        logger.info(audio_chunk.shape)
+        logger.info(type(audio_chunk))
+        logger.info(audio_chunk)
         TRANSCRIBER.process_audio(audio_chunk)
     return web.Response(text="Audio received", content_type="text/plain")
 
