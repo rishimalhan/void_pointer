@@ -3,25 +3,20 @@
 import numpy as np
 
 
-def bytes_to_chunks(byte_array, chunk_size, dtype=np.int16):
-    """
-    Splits the byte array into chunks of the specified size and converts
-    each chunk into a NumPy array.
+def bytes_to_chunks(byte_array, chunk_size, dtype=np.float32):
+    element_size = np.dtype(dtype).itemsize
+    buffer_size = len(byte_array)
 
-    Parameters:
-    - byte_array: The byte array containing the audio data.
-    - chunk_size: The size of each chunk in bytes.
-    - dtype: The NumPy data type to use for the conversion, default is np.int16.
+    # Ensure the buffer size is a multiple of the element size
+    if buffer_size % element_size != 0:
+        # Trim the buffer to make it fit, this will remove the last few bytes:
+        byte_array = byte_array[: buffer_size - (buffer_size % element_size)]
 
-    Returns:
-    - A list of NumPy arrays, each representing a chunk of the original byte array.
-    """
-
-    # Calculate the number of elements per chunk. dtype().itemsize gives the size in bytes of each item.
-    elements_per_chunk = chunk_size // np.dtype(dtype).itemsize
+    # Now convert the buffer to a numpy array
+    audio_np = np.frombuffer(byte_array, dtype=dtype)
 
     # Calculate the total number of chunks
-    total_chunks = len(byte_array) // chunk_size
+    total_chunks = len(audio_np) // chunk_size
 
     # Initialize a list to hold the chunks
     chunks = []
@@ -31,11 +26,14 @@ def bytes_to_chunks(byte_array, chunk_size, dtype=np.int16):
         start = i * chunk_size
         end = start + chunk_size
 
+        if end >= audio_np.shape[0]:
+            continue
+
         # Slice the byte_array to get the current chunk and convert to a NumPy array
-        chunk = np.frombuffer(byte_array[start:end], dtype=dtype)
+        chunk = audio_np[start:end]
 
         # Ensure the chunk is the expected size, otherwise it's a partial chunk and should be ignored or handled differently
-        if chunk.size == elements_per_chunk:
+        if chunk.shape[0] == chunk_size:
             chunks.append(chunk)
 
     return chunks

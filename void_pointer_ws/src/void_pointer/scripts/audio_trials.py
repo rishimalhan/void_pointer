@@ -76,89 +76,123 @@
 #     socketio.run(app, host="0.0.0.0", port=5000, debug=True)
 #     asyncio.run(main())
 
-from aiohttp import web
-import numpy as np
-import aiohttp_jinja2
-import jinja2
-import os
-import asyncio
-import aiohttp_cors
 
-shutdown_requested = False
-package_path = "/Users/rmalhan/AI/void_pointer/void_pointer_ws/src/void_pointer"
+# # WORKING VERSION
+# from aiohttp import web
+# import numpy as np
+# import aiohttp_jinja2
+# import jinja2
+# import os
+# import asyncio
+# import aiohttp_cors
 
-
-# Webserver for Audio
-async def handle_main(request):
-    context = {"title": "Audio Recorder"}
-    response = aiohttp_jinja2.render_template("index.html", request, context)
-    return response
+# shutdown_requested = False
+# package_path = "/Users/rmalhan/AI/void_pointer/void_pointer_ws/src/void_pointer"
 
 
-async def handle_audio_post(request, dtype=np.float32):
-    # Receive the audio file
-    data = await request.read()
-    audio_array = bytearray()
-    audio_array += data
-
-    # Convert the audio data to a numpy array (example placeholder, adjust according to actual audio format)
-    element_size = np.dtype(dtype).itemsize
-    buffer_size = len(audio_array)
-
-    # Ensure the buffer size is a multiple of the element size
-    if buffer_size % element_size != 0:
-        # Trim the buffer to make it fit, this will remove the last few bytes:
-        audio_array = audio_array[: buffer_size - (buffer_size % element_size)]
-
-    # Now convert the buffer to a numpy array
-    audio_np = np.frombuffer(audio_array, dtype=dtype)
-    print(len(audio_array))
-    print(len(audio_np))
-    return web.Response(text="Audio received", content_type="text/plain")
+# # Webserver for Audio
+# async def handle_main(request):
+#     context = {"title": "Audio Recorder"}
+#     response = aiohttp_jinja2.render_template("index.html", request, context)
+#     return response
 
 
-async def init_app():
-    app = web.Application()
-    # Setup CORS
-    cors = aiohttp_cors.setup(
-        app,
-        defaults={
-            "*": aiohttp_cors.ResourceOptions(
-                allow_credentials=True,
-                expose_headers="*",
-                allow_headers=("X-Requested-With", "Content-Type", "Accept", "Origin"),
-                allow_methods=["POST", "GET"],
-            )
-        },
+# async def handle_audio_post(request, dtype=np.float32):
+#     # Receive the audio file
+#     data = await request.read()
+#     audio_array = bytearray()
+#     audio_array += data
+
+#     # Convert the audio data to a numpy array (example placeholder, adjust according to actual audio format)
+#     element_size = np.dtype(dtype).itemsize
+#     buffer_size = len(audio_array)
+
+#     # Ensure the buffer size is a multiple of the element size
+#     if buffer_size % element_size != 0:
+#         # Trim the buffer to make it fit, this will remove the last few bytes:
+#         audio_array = audio_array[: buffer_size - (buffer_size % element_size)]
+
+#     # Now convert the buffer to a numpy array
+#     audio_np = np.frombuffer(audio_array, dtype=dtype)
+#     print(len(audio_array))
+#     print(len(audio_np))
+#     return web.Response(text="Audio received", content_type="text/plain")
+
+
+# async def init_app():
+#     app = web.Application()
+#     # Setup CORS
+#     cors = aiohttp_cors.setup(
+#         app,
+#         defaults={
+#             "*": aiohttp_cors.ResourceOptions(
+#                 allow_credentials=True,
+#                 expose_headers="*",
+#                 allow_headers=("X-Requested-With", "Content-Type", "Accept", "Origin"),
+#                 allow_methods=["POST", "GET"],
+#             )
+#         },
+#     )
+
+#     # Setup Jinja2 for template rendering
+#     aiohttp_jinja2.setup(
+#         app, loader=jinja2.FileSystemLoader(os.path.join(package_path, "templates"))
+#     )
+#     # GET route for index page
+#     app.router.add_get("/", handle_main, name="main")
+#     # Add your route
+#     route = app.router.add_post("/audio", handle_audio_post, name="audio_post")
+#     # Apply CORS to the route
+#     cors.add(route)
+#     # Static routes for JS/CSS
+#     app.router.add_static(
+#         "/static/",
+#         path=os.path.join(package_path, "static"),
+#         name="static",
+#     )
+#     return app
+
+
+# async def main():
+#     app = await init_app()
+#     runner = web.AppRunner(app)
+#     await runner.setup()
+#     site = web.TCPSite(runner, host="0.0.0.0", port=5004)
+#     await site.start()
+#     while True:
+#         await asyncio.sleep(3600)
+
+
+# asyncio.run(main())
+
+import sounddevice as sd
+import time
+
+
+def create_audio_stream(selected_device, callback):
+    RATE = 16000
+    CHUNK = 512
+    CHANNELS = 1
+    DTYPE = "float32"
+
+    stream = sd.InputStream(
+        device=selected_device,
+        channels=CHANNELS,
+        samplerate=RATE,
+        callback=callback,
+        dtype=DTYPE,
+        blocksize=CHUNK,
     )
 
-    # Setup Jinja2 for template rendering
-    aiohttp_jinja2.setup(
-        app, loader=jinja2.FileSystemLoader(os.path.join(package_path, "templates"))
-    )
-    # GET route for index page
-    app.router.add_get("/", handle_main, name="main")
-    # Add your route
-    route = app.router.add_post("/audio", handle_audio_post, name="audio_post")
-    # Apply CORS to the route
-    cors.add(route)
-    # Static routes for JS/CSS
-    app.router.add_static(
-        "/static/",
-        path=os.path.join(package_path, "static"),
-        name="static",
-    )
-    return app
+    return stream
 
 
-async def main():
-    app = await init_app()
-    runner = web.AppRunner(app)
-    await runner.setup()
-    site = web.TCPSite(runner, host="0.0.0.0", port=5004)
-    await site.start()
-    while True:
-        await asyncio.sleep(3600)
+def call_back_func(audio_data, frames, time, status):
+    print(audio_data.shape)
+    print(type(audio_data))
 
 
-asyncio.run(main())
+stream = create_audio_stream(selected_device=1, callback=call_back_func)
+stream.start()
+time.sleep(2.0)
+stream.stop()
