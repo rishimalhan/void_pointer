@@ -15,7 +15,7 @@ from aiohttp import web
 import aiohttp_jinja2
 import jinja2
 import aiohttp_cors
-from void_pointer.utils import bytes_to_chunks
+from .utils import bytes_to_chunks
 from rospkg.rospack import RosPack
 
 from faster_whisper import WhisperModel
