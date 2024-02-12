@@ -21,11 +21,10 @@ async function startRecording() {
         const options = { mimeType: 'audio/webm' };
         const mediaRecorder = new MediaRecorder(stream, options);
         // Proceed with setting up event handlers and starting the MediaRecorder
-    })
-        .catch(error => {
-            console.error('getUserMedia error:', error);
-        });
-    mediaRecorder = new MediaRecorder(stream);
+    }).catch(error => {
+        console.error('getUserMedia error:', error);
+    });
+    // mediaRecorder = new MediaRecorder(stream);
 
     mediaRecorder.ondataavailable = event => {
         audioChunks.push(event.data);
