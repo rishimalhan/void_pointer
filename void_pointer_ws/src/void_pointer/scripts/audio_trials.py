@@ -188,9 +188,8 @@ def create_audio_stream(selected_device, callback):
 
 
 def call_back_func(audio_data, frames, time, status):
-    print(audio_data)
-    print(audio_data.shape)
-    print(type(audio_data))
+    print(min(audio_data))
+    print(max(audio_data))
 
 
 stream = create_audio_stream(selected_device=1, callback=call_back_func)
