@@ -95,36 +95,37 @@ class AudioTranscriber:
                         "Exception occurred while transcribing audio {}".format(str(e))
                     )
 
+    # def process_audio(self, audio_data: np.ndarray):
+    #     is_speech = self.vad.is_speech(audio_data)
+    #     if is_speech:
+    #         self.audio_queue.put(audio_data.flatten())
+
+    # def process_audio(self, audio_data: np.ndarray, frames: int, time, status):
     def process_audio(self, audio_data: np.ndarray):
         is_speech = self.vad.is_speech(audio_data)
         if is_speech:
-            self.audio_queue.put(audio_data.flatten())
+            self.silence_counter = 0
+            self.audio_data_list.append(audio_data.flatten())
+        else:
+            self.silence_counter += 1
+            if self.app_options.include_non_speech:
+                self.audio_data_list.append(audio_data.flatten())
 
-    # def process_audio(self, audio_data: np.ndarray, frames: int, time, status):
-    #     is_speech = self.vad.is_speech(audio_data)
-    #     if is_speech:
-    #         self.silence_counter = 0
-    #         self.audio_data_list.append(audio_data.flatten())
-    #     else:
-    #         self.silence_counter += 1
-    #         if self.app_options.include_non_speech:
-    #             self.audio_data_list.append(audio_data.flatten())
+        # This function ideally should continue stream processing chunks
+        # As soon as no speech audio reaches a certain limit we cut off and complete sentence
+        if not is_speech and self.silence_counter > self.app_options.silence_limit:
+            self.silence_counter = 0
 
-    #     # This function ideally should continue stream processing chunks
-    #     # As soon as no speech audio reaches a certain limit we cut off and complete sentence
-    #     if not is_speech and self.silence_counter > self.app_options.silence_limit:
-    #         self.silence_counter = 0
+            if self.app_options.create_audio_file:
+                self.all_audio_data_list.extend(self.audio_data_list)
 
-    #         if self.app_options.create_audio_file:
-    #             self.all_audio_data_list.extend(self.audio_data_list)
-
-    #         if len(self.audio_data_list) > self.app_options.noise_threshold:
-    #             concatenate_audio_data = np.concatenate(self.audio_data_list)
-    #             self.audio_data_list.clear()
-    #             self.audio_queue.put(concatenate_audio_data)
-    #         else:
-    #             # noise clear
-    #             self.audio_data_list.clear()
+            if len(self.audio_data_list) > self.app_options.noise_threshold:
+                concatenate_audio_data = np.concatenate(self.audio_data_list)
+                self.audio_data_list.clear()
+                self.audio_queue.put(concatenate_audio_data)
+            else:
+                # noise clear
+                self.audio_data_list.clear()
 
     def batch_transcribe_audio(self, audio_data: np.ndarray):
         segment_list = []
