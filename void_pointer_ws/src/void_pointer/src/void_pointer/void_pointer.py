@@ -296,7 +296,6 @@ async def handle_audio_post(request, dtype=np.float32):
         audio_array = audio_array[: buffer_size - (buffer_size % element_size)]
 
     # Now convert the buffer to a numpy array
-    logger.info("DEBUG: Sending audio for processing.")
     audio_np = bytes_to_chunks(audio_array, chunk_size=CHUNK, dtype=dtype)
     for audio_chunk in audio_np:
         logger.info(audio_chunk.shape)
