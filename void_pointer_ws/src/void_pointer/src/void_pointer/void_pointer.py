@@ -14,7 +14,6 @@ from functools import partial
 from aiohttp import web
 import aiohttp_jinja2
 import jinja2
-import socketio
 import aiohttp_cors
 from void_pointer.utils import bytes_to_chunks
 from rospkg.rospack import RosPack
