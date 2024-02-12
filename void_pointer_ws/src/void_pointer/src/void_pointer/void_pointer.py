@@ -15,7 +15,7 @@ from aiohttp import web
 import aiohttp_jinja2
 import jinja2
 import aiohttp_cors
-from utils import bytes_to_chunks
+from utils import bytes_to_chunks, contains_non_numbers
 from rospkg.rospack import RosPack
 
 from faster_whisper import WhisperModel
@@ -298,6 +298,8 @@ async def handle_audio_post(request, dtype=np.float32):
     # Now convert the buffer to a numpy array
     audio_np = bytes_to_chunks(audio_array, chunk_size=CHUNK, dtype=dtype)
     for audio_chunk in audio_np:
+        if contains_non_numbers(audio_chunk):
+            logger.info("WARNING. Arr has non numbers")
         TRANSCRIBER.process_audio(audio_chunk)
     return web.Response(text="Audio received", content_type="text/plain")
 

@@ -3,6 +3,21 @@
 import numpy as np
 
 
+def contains_non_numbers(arr):
+    # Check for NaN and Inf in arrays that support such operations
+    if arr.dtype.kind in "fc":  # f: floating-point, c: complex floating-point
+        if np.isnan(arr).any() or np.isinf(arr).any():
+            return True
+
+    # Check for non-numeric types in object arrays
+    if arr.dtype == object:
+        for x in arr:
+            if not isinstance(x, (int, float, complex, np.number)):
+                return True
+
+    return False
+
+
 def bytes_to_chunks(byte_array, chunk_size, dtype=np.float32):
     element_size = np.dtype(dtype).itemsize
     buffer_size = len(byte_array)
