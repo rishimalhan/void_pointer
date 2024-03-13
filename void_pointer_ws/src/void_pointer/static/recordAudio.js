@@ -39,18 +39,37 @@ function stopRecording() {
 }
 
 function sendAudioToServer(audioBlob) {
-    const formData = new FormData();
-    formData.append('audio', audioBlob);
-
     fetch('/audio', {
         method: 'POST',
-        body: formData,
-    })
-        .then(response => response.json())
-        .then(data => {
-            console.log('Success:', data);
-        })
-        .catch((error) => {
-            console.error('Error:', error);
-        });
+        headers: {
+            'Content-Type': 'audio/webm', // or the appropriate type for your audio Blob
+        },
+        body: audioBlob
+    }).then(response => {
+        if (response.ok) {
+            return response.json(); // or .text() or whatever the server responds with
+        }
+        throw new Error('Network response was not ok.');
+    }).then(data => {
+        console.log(data); // Handle the response data
+    }).catch(error => {
+        console.error('There was a problem with your fetch operation:', error);
+    });
 }
+
+// function sendAudioToServer(audioBlob) {
+//     const formData = new FormData();
+//     formData.append('audio', audioBlob);
+
+//     fetch('/audio', {
+//         method: 'POST',
+//         body: formData,
+//     })
+//         .then(response => response.json())
+//         .then(data => {
+//             console.log('Success:', data);
+//         })
+//         .catch((error) => {
+//             console.error('Error:', error);
+//         });
+// }

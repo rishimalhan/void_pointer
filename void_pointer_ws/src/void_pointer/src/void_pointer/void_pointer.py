@@ -25,6 +25,8 @@ from speech_to_text.utils.audio_utils import get_valid_input_devices, base64_to_
 from speech_to_text.utils.file_utils import read_json, write_json, write_audio
 from speech_to_text.websoket_server import WebSocketServer
 from speech_to_text.openai_api import OpenAIAPI
+from pydub import AudioSegment
+import io
 
 logging.basicConfig()
 logger = logging.getLogger(__name__)
@@ -295,8 +297,17 @@ async def handle_audio_post(request, dtype=np.float32):
         # Trim the buffer to make it fit, this will remove the last few bytes:
         audio_array = audio_array[: buffer_size - (buffer_size % element_size)]
 
+    audio_stream = io.BytesIO(audio_array)
+    audio = (
+        AudioSegment.from_file(audio_stream, format="webm")
+        .set_frame_rate(16000)
+        .set_channels(1)
+    )
+    wav_bytes = io.BytesIO()
+    audio.export(wav_bytes, format="wav")
+
     # Now convert the buffer to a numpy array
-    audio_np = bytes_to_chunks(audio_array, chunk_size=CHUNK, dtype=dtype)
+    audio_np = bytes_to_chunks(wav_bytes.getvalue(), chunk_size=CHUNK, dtype=dtype)
     for audio_chunk in audio_np:
         if contains_non_numbers(audio_chunk):
             logger.info("WARNING. Arr has non numbers")
