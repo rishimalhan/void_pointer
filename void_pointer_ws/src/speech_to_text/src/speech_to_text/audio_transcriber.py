@@ -95,11 +95,6 @@ class AudioTranscriber:
                         "Exception occurred while transcribing audio {}".format(str(e))
                     )
 
-    # def process_audio(self, audio_data: np.ndarray):
-    #     is_speech = self.vad.is_speech(audio_data)
-    #     if is_speech:
-    #         self.audio_queue.put(audio_data.flatten())
-
     # def process_audio(self, audio_data: np.ndarray, frames: int, time, status):
     def process_audio(self, audio_data: np.ndarray):
         is_speech = self.vad.is_speech(audio_data)

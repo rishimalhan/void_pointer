@@ -297,17 +297,8 @@ async def handle_audio_post(request, dtype=np.float32):
         # Trim the buffer to make it fit, this will remove the last few bytes:
         audio_array = audio_array[: buffer_size - (buffer_size % element_size)]
 
-    audio_stream = io.BytesIO(audio_array)
-    audio = (
-        AudioSegment.from_file(audio_stream, format="webm")
-        .set_frame_rate(16000)
-        .set_channels(1)
-    )
-    wav_bytes = io.BytesIO()
-    audio.export(wav_bytes, format="wav")
-
     # Now convert the buffer to a numpy array
-    audio_np = bytes_to_chunks(wav_bytes.getvalue(), chunk_size=CHUNK, dtype=dtype)
+    audio_np = bytes_to_chunks(audio_array, chunk_size=CHUNK, dtype=dtype)
     for audio_chunk in audio_np:
         if contains_non_numbers(audio_chunk):
             logger.info("WARNING. Arr has non numbers")
