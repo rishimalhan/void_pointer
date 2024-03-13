@@ -267,9 +267,9 @@ async def trigger_gpt():
         except asyncio.QueueEmpty:
             pass
         if text:
-            logger.info(f"STT: {text}")
-            response = await gpt_interface.ask_gpt(message=text)
-            logger.info("GPT: {}".format(response))
+            logger.info(f"Speech to Text: {text}")
+            # response = await gpt_interface.ask_gpt(message=text)
+            # logger.info("GPT: {}".format(response))
             # audio_array = generate_audio_from_long_text(response)
             # sd.play(audio_array, SAMPLE_RATE)
         await asyncio.sleep(0.001)

@@ -97,7 +97,11 @@ class AudioTranscriber:
 
     # def process_audio(self, audio_data: np.ndarray, frames: int, time, status):
     def process_audio(self, audio_data: np.ndarray):
-        logger.info(f"Length of audio list: {len(self.audio_data_list)}")
+        self.audio_data_list.append(audio_data.flatten())
+        if len(self.audio_data_list) > 10:
+            concatenate_audio_data = np.concatenate(self.audio_data_list)
+            self.audio_queue.put(concatenate_audio_data)
+        return
         is_speech = self.vad.is_speech(audio_data)
         if is_speech:
             self.silence_counter = 0
