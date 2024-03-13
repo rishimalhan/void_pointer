@@ -97,8 +97,8 @@ class AudioTranscriber:
 
     # def process_audio(self, audio_data: np.ndarray, frames: int, time, status):
     def process_audio(self, audio_data: np.ndarray):
+        logger.info(f"Length of audio list: {len(self.audio_data_list)}")
         is_speech = self.vad.is_speech(audio_data)
-        logger.info(f"VAD declares speech: {is_speech}")
         if is_speech:
             self.silence_counter = 0
             self.audio_data_list.append(audio_data.flatten())
@@ -124,8 +124,6 @@ class AudioTranscriber:
             else:
                 # noise clear
                 self.audio_data_list.clear()
-
-        logger.info(f"Length of audio list: {len(self.audio_data_list)}")
 
     def batch_transcribe_audio(self, audio_data: np.ndarray):
         segment_list = []
