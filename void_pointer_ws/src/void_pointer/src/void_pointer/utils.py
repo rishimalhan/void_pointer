@@ -50,8 +50,6 @@ def bytes_to_chunks(byte_array, chunk_size, dtype=np.float32):
     audio_np = np.frombuffer(byte_array, dtype=dtype)
 
     audio_np = filter_numeric_elements(audio_np)
-    audio_np /= np.max(np.abs(audio_np), axis=0)
-
     # Calculate the total number of chunks
     total_chunks = len(audio_np) // chunk_size
 
