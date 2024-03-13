@@ -112,12 +112,8 @@ def start_ipython(request):
 
 
 async def handle_audio_post(request, dtype=np.float32):
-    await asyncio.get_running_loop().run_in_executor(
-        None, partial(start_ipython, request)
-    )
-
     # Receive the audio file
-    data = request.read()
+    data = await request.read()
     audio_array = bytearray()
     audio_array += data
 
@@ -130,17 +126,17 @@ async def handle_audio_post(request, dtype=np.float32):
         # Trim the buffer to make it fit, this will remove the last few bytes:
         audio_array = audio_array[: buffer_size - (buffer_size % element_size)]
 
-    audio_stream = io.BytesIO(audio_array)
-    audio = (
-        AudioSegment.from_file(audio_stream, format="webm")
-        .set_frame_rate(16000)
-        .set_channels(1)
-    )
-    wav_bytes = io.BytesIO()
-    audio.export(wav_bytes, format="wav")
+    # audio_stream = io.BytesIO(audio_array)
+    # audio = (
+    #     AudioSegment.from_file(audio_stream, format="webm")
+    #     .set_frame_rate(16000)
+    #     .set_channels(1)
+    # )
+    # wav_bytes = io.BytesIO()
+    # audio.export(wav_bytes, format="wav")
 
     # Now convert the buffer to a numpy array
-    audio_np = bytes_to_chunks(wav_bytes.getvalue(), chunk_size=CHUNK, dtype=dtype)
+    audio_np = bytes_to_chunks(audio_array, chunk_size=CHUNK, dtype=dtype)
     for audio_chunk in audio_np:
         if contains_non_numbers(audio_chunk):
             print("WARNING. Arr has non numbers")
